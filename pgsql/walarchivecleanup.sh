@@ -6,6 +6,7 @@
 # 
 # History:
 # 2017-10-27 1.0 Create and publish script
+# 2017-11-02 1.1 Use different find cmd to determine newest deletable file within range
 #########################################################################
 help="$0 (c) 2017 Claudio Kuenzler
 This script helps to clean up archived WAL logs on a PostgreSQL master server using the pg_archivecleanup command. 
@@ -27,7 +28,7 @@ Example 2: $0 -p /var/lib/postgresql/9.6/main/archive -f 00000001000000010000001
 Cronjob example: 00 03 * * * /root/scripts/walarchivecleanup.sh -p /var/lib/postgresql/9.6/main/archive -a 14" 
 #########################################################################
 # Check necessary commands are available
-for cmd in find [
+for cmd in find awk sort [
 do
  if ! `which ${cmd} 1>/dev/null`
  then
@@ -86,7 +87,7 @@ fi
 if [[ $debug = true ]]; then cmd_debug="-d"; fi
 if [[ $dry = true ]]; then cmd_dry="-n"; fi
 if [[ -n $age ]] && [[ -z $archivefile ]]; then
-  cmd_file="$(find ${archivepath}/ -type f -mtime +${age} -printf "%f\n" | tail -n 1)"
+  cmd_file="$(find ${archivepath}/ -type f -mtime +${age} -printf "%C@ %f\n" |sort -n | tail -n 1 | awk '{print $NF}')"
 else
   cmd_file="$archivefile"
 fi
