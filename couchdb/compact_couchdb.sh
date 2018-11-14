@@ -13,7 +13,7 @@ cdbport=5984
 # Functions
 help() {
 echo -e "$0 (c) 2018 Claudio Kuenzler www.claudiokuenzler.com
-This script helps to compcat databases and views on a CouchDB server.
+This script helps to compact databases and views on a CouchDB server.
 Please note that a recent version of CouchDB should be used (due to the _design_docs parameter). 
 The script was tested with CouchDB 2.1. Newer versions _should_ work, too.
 ---------------------
