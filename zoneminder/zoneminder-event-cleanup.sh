@@ -3,7 +3,7 @@
 # Script:	zoneminder-event-cleanup.sh
 # Purpose:	Clean up old Zoneminder events but exclude archived events
 # Authors:	Claudio Kuenzler (2018)
-# Doc:		will follow
+# Doc:		https://www.claudiokuenzler.com/blog/814/how-to-manually-clean-up-delete-zoneminder-events
 # History:	2018-12-14 First version
 ###########################################################################
 # User variables
