@@ -4,7 +4,9 @@
 # Purpose:	Clean up old Zoneminder events but exclude archived events
 # Authors:	Claudio Kuenzler (2018)
 # Doc:		https://www.claudiokuenzler.com/blog/814/how-to-manually-clean-up-delete-zoneminder-events
-# History:	2018-12-14 First version
+# History:	
+# 2018-12-14 First version
+# 2018-12-18 DB Name variable in first query
 ###########################################################################
 # User variables
 olderthan=2 # Defines the minimum age in days of the events to be deleted
@@ -18,7 +20,7 @@ mysqlpass=secret # Defines the password for the MySQL user
 tmpfile=/tmp/$RANDOM
 
 # Get archived events from database
-declare -a archived=( $(mysql -N -u $mysqluser --password=$mysqlpass -e "select Id from zm.Events where Archived = 1;") )
+declare -a archived=( $(mysql -N -u $mysqluser --password=$mysqlpass -e "select Id from ${mysqldb}.Events where Archived = 1;") )
 
 # Define find exceptions based on archived events
 i=0
