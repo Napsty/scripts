@@ -87,7 +87,7 @@ fi
 if [[ $debug = true ]]; then cmd_debug="-d"; fi
 if [[ $dry = true ]]; then cmd_dry="-n"; fi
 if [[ -n $age ]] && [[ -z $archivefile ]]; then
-  cmd_file="$(find ${archivepath}/ -type f -mtime +${age} -printf "%C@ %f\n" |sort -n | tail -n 1 | awk '{print $NF}')"
+  cmd_file="$(find ${archivepath}/ -type f -not -name '*.ready' -not -name '*.backup' -mtime +${age} -printf "%C@ %f\n" | sort -n | tail -n 1 | cut -f2 -d' '
 else
   cmd_file="$archivefile"
 fi
