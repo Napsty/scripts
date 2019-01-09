@@ -10,11 +10,16 @@ Description of some scripts (list may be incomplete)
 
 ```
 couchdb/compact_couchdb.sh -> CouchDB maintenance script to compact databases and views
+linux/bin2hex.pl -> (Attempt to) Convert binary scripts to cleartext
 linux/bootinfoscript.sh -> Collecting data about OS's drive setup, including bootloader, partitions, etc
+linux/conv.pl -> (Attempt to) Convert binary scripts to cleartext
+linux/mb2md.pl -> Converts Mbox mailboxes to Maildir format (note: package mb2md)
 linux/swapusage.sh -> Collecting data for swap usage and prints which procs use most swap
 mongodb/logrotate-mongodb.sh -> Force MongoDB to rotate the MongoDB logfile (without downtime)
 pgsql/walarchivecleanup.sh -> Cleanup old PostgreSQL WAL logs according
+security/check_filesystem.sh -> Scan the filesystem for the CryptoPHP backdoor
 security/findbot.pl -> Trying to identify suspicious (php) files
+security/joomscan.pl -> Joomla Vulnerability Scanner
 security/testssl.sh -> SSL/TLS security testing, including insecure ciphers and vulnerabilities
 zoneminder/zoneminder-event-cleanup.sh -> Cleanup old Zoneminder recordings/events but keep archived ones
 ```
