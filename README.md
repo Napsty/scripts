@@ -21,5 +21,7 @@ security/check_filesystem.sh -> Scan the filesystem for the CryptoPHP backdoor
 security/findbot.pl -> Trying to identify suspicious (php) files
 security/joomscan.pl -> Joomla Vulnerability Scanner
 security/testssl.sh -> SSL/TLS security testing, including insecure ciphers and vulnerabilities
+webserver/delapacheuserfiles-interactive.php -> Delete files (in browser) which were created by webserver user (interactive)
+webserver/delapacheuserfiles-without-asking.php -> Delete files (in browser) which were created by webserver user (does not ask, just deletes)
 zoneminder/zoneminder-event-cleanup.sh -> Cleanup old Zoneminder recordings/events but keep archived ones
 ```
