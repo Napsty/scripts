@@ -1,7 +1,9 @@
 #!/bin/bash
 #####################################################
-# InfluxDB Dump Script
-# www.infiniroot.com www.claudiokuenzler.com
+# Simple InfluxDB Dump Script
+# Author: www.infiniroot.com www.claudiokuenzler.com
+# Notes: The local dumps will be deleted on each run
+#        Make sure you copy them off the host, too
 # 20190314 ck	First version
 #####################################################
 # Variables
@@ -13,7 +15,7 @@ INFLUX_USERNAME=
 INFLUX_PASSWORD=
 #####################################################
 # Sanity checks
-for cmd in influx influxd jshon
+for cmd in influx influxd 
 do
  if ! `which ${cmd} 1>/dev/null`
  then
