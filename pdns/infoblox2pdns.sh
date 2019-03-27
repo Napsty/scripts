@@ -168,7 +168,7 @@ if [[ $verbose -eq 1 || $simulate -eq 1 ]]; then echo "pdnsutil create-zone $dom
 if [[ $simulate -eq 0 ]]; then pdnsutil create-zone $domain $soa_primary_dns; fi
 
 # Get domain ID from MySQL database defind by -c parameter
-if [[ -n $commentdb ]]; then domainid=$(mysql -Bse "select id from powerdns.domains WHERE name = '$domain'"); fi
+if [[ -n $commentdb ]]; then domainid=$(mysql -Bse "select id from ${commentdb}.domains WHERE name = '$domain'"); fi
 
 
 # Add SOA record 
