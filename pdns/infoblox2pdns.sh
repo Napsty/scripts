@@ -10,7 +10,9 @@
 # as long as the CSV format matches the one from Infoblox. 
 # See an example zone export further down after Usage.
 ###############################################################
-# Changelog:    1.0 First version (published on March 26 2019)
+# Changelog:    
+# 1.0 First public version (published on March 26 2019)
+# 1.1 Set replication type to MASTER
 ###############################################################
 # License:      GNU General Public Licence (GPL) http://www.gnu.org/
 # This program is free software; you can redistribute it and/or 
@@ -42,7 +44,7 @@
 ###############################################################
 # Defaults
 simulate=0
-version=1.0
+version=1.1
 ###############################################################
 # Help 
 help="$0 $version (c) 2019 Claudio Kuenzler\n
@@ -224,7 +226,9 @@ for srvrecord in $(echo ${srv_records[*]}); do
   if [[ $simulate -eq 0 ]]; then pdnsutil add-record $domain $entry SRV "$priority $weight $port $target"; [[ $? -gt 0 ]] && let srverr++; fi
 done
 
-# Increase serial number for zone, reload pdns and send notifies to slaves 
+# Set replication type to master, Increase serial number for zone, reload pdns and send notifies to slaves 
+if [[ $verbose -eq 1 || $simulate -eq 1 ]]; then echo "pdnsutil set-kind $domain MASTER"; fi
+if [[ $simulate -eq 0 ]]; then pdnsutil set-kind $domain MASTER; fi
 if [[ $verbose -eq 1 || $simulate -eq 1 ]]; then echo "pdnsutil increase-serial $domain"; fi
 if [[ $simulate -eq 0 ]]; then pdnsutil increase-serial $domain; fi
 if [[ $verbose -eq 1 || $simulate -eq 1 ]]; then echo "pdns_control reload"; fi
