@@ -14,6 +14,7 @@
 # 1.0 First public version (published on March 26 2019)
 # 1.1 Set replication type to MASTER
 # 1.2 Added possibility to import comments, too (using -c dbname)
+# 1.2.1 Add -c parameter to usage
 ###############################################################
 # License:      GNU General Public Licence (GPL) http://www.gnu.org/
 # This program is free software; you can redistribute it and/or 
@@ -52,12 +53,12 @@ simulate=0
 ###############################################################
 # Help 
 help="$0 $version (c) 2019 Claudio Kuenzler\n
-Usage: $0 -f /path/to/file.csv -d domain.com [-n 'ns1.example.com ns2.example.com ns3.example.com']\n
+Usage: $0 -f /path/to/file.csv -d domain.com [-n 'ns1.example.com ns2.example.com ns3.example.com'] [-c DBname]\n
 Options:
 -f Path to the csv file which was exported from Infoblox
 -d Domain Name (example.com)
 -n List of nameservers separated by whitespace to overwrite the NS records found from the CSV file (-n 'ns1.example.com ns2.example.com ns3.example.com'). Note: The first nameserver will be handled as primary nameserver.
--c Name of MySQL database if you want to import the comments from the CSV as well. '-c powerdns' would mean powerdns.comments table. This will use the MySQL credentials of your current Shell user (see ~./my.cnf).
+-c Name of MySQL database if you want to import the comments from the CSV as well. '-c powerdns' would mean powerdns.comments table. This will use the MySQL credentials of your current Shell user (defined in ~./my.cnf).
 -v Verbose (Show all found records and all pdns commands)
 -s Simulate (Does nothing in PowerDNS, just shows what the script would do in verbose)
 -h Show help\n
