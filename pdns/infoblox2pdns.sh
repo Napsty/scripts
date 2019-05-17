@@ -15,6 +15,7 @@
 # 1.1 Set replication type to MASTER
 # 1.2 Added possibility to import comments, too (using -c dbname)
 # 1.2.1 Add -c parameter to usage
+# 1.3 Create an entry SOA-EDIT-API in the domainmetadata table
 ###############################################################
 # License:      GNU General Public Licence (GPL) http://www.gnu.org/
 # This program is free software; you can redistribute it and/or 
@@ -45,7 +46,7 @@
 #"_sip._tls","SRV Record","0 0 443 sip.example.com","",""
 ###############################################################
 # Version
-version=1.2
+version=1.3
 
 # Fixed variables / defaults
 timestamp=$(date +%s)
@@ -58,7 +59,7 @@ Options:
 -f Path to the csv file which was exported from Infoblox
 -d Domain Name (example.com)
 -n List of nameservers separated by whitespace to overwrite the NS records found from the CSV file (-n 'ns1.example.com ns2.example.com ns3.example.com'). Note: The first nameserver will be handled as primary nameserver.
--c Name of MySQL database if you want to import the comments from the CSV as well. '-c powerdns' would mean powerdns.comments table. This will use the MySQL credentials of your current Shell user (defined in ~./my.cnf).
+-c Name of MySQL database used by PowerDNS. This will use the MySQL credentials of your current Shell user (defined in ~./my.cnf). When defined, this will add the comments found in the CSV into the comments table and will set the SOA-EDIT-API to INCEPTION-INCREMENT in the domainmetadata table.
 -v Verbose (Show all found records and all pdns commands)
 -s Simulate (Does nothing in PowerDNS, just shows what the script would do in verbose)
 -h Show help\n
@@ -168,8 +169,12 @@ fi
 if [[ $verbose -eq 1 || $simulate -eq 1 ]]; then echo "pdnsutil create-zone $domain $soa_primary_dns"; fi
 if [[ $simulate -eq 0 ]]; then pdnsutil create-zone $domain $soa_primary_dns; fi
 
-# Get domain ID from MySQL database defind by -c parameter
+# Get domain ID from MySQL database defined by -c parameter
 if [[ -n $commentdb ]]; then domainid=$(mysql -Bse "select id from ${commentdb}.domains WHERE name = '$domain'"); fi
+
+# Set SOA-EDIT-API to INCEPTION-INCREMENT in the domainmetadata table. Otherwise changes in the UI will not increase SOA serial!
+# See https://www.claudiokuenzler.com/blog/856/powerdns-soa-serial-not-updated-after-zone-change-opera-dns-ui
+if [[ -n $commentdb ]]; then mysql -e "insert into ${commentdb}.domainmetadata (domain_id, kind, content) values ($domainid, 'SOA-EDIT-API', 'INCEPTION-INCREMENT')"; fi
 
 
 # Add SOA record 
