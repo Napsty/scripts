@@ -7,6 +7,7 @@
 # History:
 # 2017-10-27 1.0 Create and publish script
 # 2017-11-02 1.1 Use different find cmd to determine newest deletable file within range
+# 2019-05-17 1.2 Ignore .ready and .backup files, set maxdepth
 #########################################################################
 help="$0 (c) 2017 Claudio Kuenzler
 This script helps to clean up archived WAL logs on a PostgreSQL master server using the pg_archivecleanup command. 
@@ -37,7 +38,7 @@ do
  fi
 done
 #########################################################################
-# Check for people who need help - aren't we all nice ;-)
+# Check for people who need help - arent we all nice ;-)
 if [ "${1}" = "--help" -o "${#}" = "0" ];
        then
        echo -e "${help}";
@@ -87,7 +88,7 @@ fi
 if [[ $debug = true ]]; then cmd_debug="-d"; fi
 if [[ $dry = true ]]; then cmd_dry="-n"; fi
 if [[ -n $age ]] && [[ -z $archivefile ]]; then
-  cmd_file="$(find ${archivepath}/ -type f -mtime +${age} -printf "%C@ %f\n" |sort -n | tail -n 1 | awk '{print $NF}')"
+  cmd_file="$(find ${archivepath}/ -maxdepth 1 -type f -not -name '*.ready' -not -name '*.backup' -mtime +${age} -printf "%C@ %f\n" |sort -n | tail -n 1 | awk '{print $NF}')"
 else
   cmd_file="$archivefile"
 fi
