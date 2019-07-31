@@ -8,14 +8,15 @@
 # 2017-10-27 1.0 Create and publish script
 # 2017-11-02 1.1 Use different find cmd to determine newest deletable file within range
 # 2019-05-17 1.2 Ignore .ready and .backup files, set maxdepth
+# 2019-07-31 1.3 Hint in documentation about -a parameter and keep age
 #########################################################################
-help="$0 (c) 2017 Claudio Kuenzler
+help="$0 (c) 2017,2019 Claudio Kuenzler
 This script helps to clean up archived WAL logs on a PostgreSQL master server using the pg_archivecleanup command. 
 Please note that WAL archiving currently only works on a master server (as of 9.6).
 ---------------------
 Options:
   -p         Path to the archived WAL logs (e.g. /var/lib/postgresql/9.6/main/archive)
-  -a         Age of archived logs to keep (days), anything older will be deleted
+  -a         Age of archived logs to keep (in days), anything older will be deleted (Note: use '0' to delete WAL logs older than 24h)
   -f         Specify a certain archived WAL file, anything older than this file will be deleted
              Note: If you use -f, it will override -a parameter
   -c         Full path to pg_archivecleanup command (if not found in \$PATH)
