@@ -96,7 +96,9 @@ curldbsrc=$?
 if [[ $curldbsrc -eq 6 ]]; then 
   echo "Error: Could not resolve host: ${cdbhost}"; exit 2
 elif [[ $curldbsrc -eq 7 ]]; then
-  echo "Error: Failed to connect to ${cdbhost} ${cdbport}"; exit 2
+  echo "Error: Failed to connect to ${cdbhost}:${cdbport}"; exit 2
+elif [[ $curldbsrc -eq 60 ]]; then
+  echo "Error: Certificate very failed on ${cdbhost}:${cdbport}"; exit 2
 elif [[ ${curldbs} =~ "unauthorized" ]] || [[ ${curldbs} =~ "Authorization" ]]; then
   echo "Error: Unauthorized to run compact. Make sure you are using server admin credentials."; exit 2
 else declare -a dbs=( $(echo $curldbs|jshon -a -u) )
