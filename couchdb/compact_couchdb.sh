@@ -2,8 +2,29 @@
 #########################################################################
 # CouchDB compact script
 # This script will go through all databases and views and compact them
-# (c) Claudio Kuenzler www.claudiokuenzler.com
+# Script is maintained here: https://github.com/Napsty/scripts
+#
+# License: GPLv2
+#
+# GNU General Public Licence (GPL) http://www.gnu.org/
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (c) 2018,2020 Claudio Kuenzler www.claudiokuenzler.com
+#
+# History:
 # 2018-07-19 Created script
+# 2020-02-28 Catch several http errors (issue-3)
 #########################################################################
 # Assume defaults
 cdbproto=http
@@ -12,7 +33,7 @@ cdbport=5984
 #########################################################################
 # Functions
 help() {
-echo -e "$0 (c) 2018 Claudio Kuenzler www.claudiokuenzler.com
+echo -e "$0 (c) 2018-2020 Claudio Kuenzler www.claudiokuenzler.com
 This script helps to compact databases and views on a CouchDB server.
 Please note that a recent version of CouchDB should be used (due to the _design_docs parameter). 
 The script was tested with CouchDB 2.1. Newer versions _should_ work, too.
@@ -69,11 +90,17 @@ if [[ -n $user ]] && [[ -n $pass ]]
   cdbcreds="-u ${user}:${pass}"
 fi
  
-curldbs=$(curl -q -s ${cdbproto}://${cdbhost}:${cdbport}/_all_dbs ${cdbcreds}) 
-if [[ ${curldbs} =~ "unauthorized" ]]
-  then echo "Error: Unauthorized to run compact. Make sure you are using server admin credentials."; exit 2
+curldbs=$(curl -q -s ${cdbproto}://${cdbhost}:${cdbport}/_all_dbs ${cdbcreds})
+curldbsrc=$?
+
+if [[ $curldbsrc -eq 6 ]]; then 
+  echo "Error: Could not resolve host: ${cdbhost}"; exit 2
+elif [[ $curldbsrc -eq 7 ]]; then
+  echo "Error: Failed to connect to ${cdbhost} ${cdbport}"; exit 2
+elif [[ ${curldbs} =~ "unauthorized" ]] || [[ ${curldbs} =~ "Authorization" ]]; then
+  echo "Error: Unauthorized to run compact. Make sure you are using server admin credentials."; exit 2
+else declare -a dbs=( $(echo $curldbs|jshon -a -u) )
 fi
-declare -a dbs=( $(echo $curldbs|jshon -a -u) )
 
 if [[ $debug -eq 1 ]]; then echo "Found ${#dbs[*]} databases"; fi
 
