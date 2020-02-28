@@ -103,7 +103,7 @@ elif [[ $curldbsrc -eq 7 ]]; then
 elif [[ $curldbsrc -eq 60 ]]; then
   echo "Error: Certificate very failed on ${cdbhost}:${cdbport}"; exit 2
 elif [[ ${curldbs} =~ "unauthorized" ]] || [[ ${curldbs} =~ "Authorization" ]]; then
-  echo "Error: Unauthorized to run compact. Make sure you are using server admin credentials."; exit 2
+  echo "Error: Unauthorized to run compact. Make sure you are using correct credentials and have server admin rights."; exit 2
 elif [[ $curldbsrc -eq 0 ]]; then
   declare -a dbs=( $(echo $curldbs|jshon -a -u) )
 else "Error: Unknown error"; exit 2
