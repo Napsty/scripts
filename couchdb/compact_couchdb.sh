@@ -120,9 +120,9 @@ for db in ${dbs[*]}; do
   else
     if [[ $debug -eq 1 ]]; then 
       echo "Running compact on $db"
-      echo curl -q -s -H "Content-Type: application/json" -X POST ${cdbproto}://${cdbhost}:${cdbport}/${db}/_compact ${cdbcreds}
+      echo curl -q -s $verify -H "Content-Type: application/json" -X POST ${cdbproto}://${cdbhost}:${cdbport}/${db}/_compact ${cdbcreds}
     fi
-    compactresult=$(curl -q -s -H "Content-Type: application/json" -X POST ${cdbproto}://${cdbhost}:${cdbport}/${db}/_compact ${cdbcreds})
+    compactresult=$(curl -q -s $verify -H "Content-Type: application/json" -X POST ${cdbproto}://${cdbhost}:${cdbport}/${db}/_compact ${cdbcreds})
 
     if [[ ${compactresult} =~ "unauthorized" ]]
       then echo "Error: Unauthorized to run compact. Make sure you are using server admin credentials."; exit 2
@@ -131,16 +131,16 @@ for db in ${dbs[*]}; do
     fi 
   
     if [[ $debug -eq 1 ]]; then echo "Getting list of views of $db"; fi
-    declare -a views=( $(curl -q -s ${cdbproto}://${cdbhost}:${cdbport}/${db}/_design_docs ${cdbcreds}|jshon -e rows -a -e id -u|awk -F '/' '{print $2}') )
+    declare -a views=( $(curl -q -s $verify ${cdbproto}://${cdbhost}:${cdbport}/${db}/_design_docs ${cdbcreds}|jshon -e rows -a -e id -u|awk -F '/' '{print $2}') )
 
     if [[ $debug -eq 1 ]]; then echo "Found ${#views[*]} view(s) in $db: ${views[*]}"; fi
   
     for view in ${views[*]}; do
       if [[ $debug -eq 1 ]]; then 
         echo "Running compact on view $view"
-        echo curl -q -s -H "Content-Type: application/json" -X POST ${cdbproto}://${cdbhost}:${cdbport}/${db}/_compact/${view} ${cdbcreds}
+        echo curl -q -s $verify -H "Content-Type: application/json" -X POST ${cdbproto}://${cdbhost}:${cdbport}/${db}/_compact/${view} ${cdbcreds}
       fi
-      curl -q -s -H "Content-Type: application/json" -X POST ${cdbproto}://${cdbhost}:${cdbport}/${db}/_compact/${view} ${cdbcreds}
+      curl -q -s $verify -H "Content-Type: application/json" -X POST ${cdbproto}://${cdbhost}:${cdbport}/${db}/_compact/${view} ${cdbcreds}
     done
   fi
 
