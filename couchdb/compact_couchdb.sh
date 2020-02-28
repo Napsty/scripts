@@ -24,7 +24,8 @@
 #
 # History:
 # 2018-07-19 Created script
-# 2020-02-28 Catch several http errors (issue-3)
+# 2020-02-28 Catch several http errors (fix issue-3)
+# 2020-02-28 Add "-k" parameter to ignore certificate errors
 #########################################################################
 # Assume defaults
 cdbproto=http
@@ -71,7 +72,7 @@ for cmd in curl jshon; do
 done
 #########################################################################
 # Get user-given variables
-while getopts "H:P:Su:p:r:hd" Input;
+while getopts "H:P:Su:p:r:dkh" Input;
 do
   case ${Input} in
   H)      cdbhost=${OPTARG};;
@@ -80,6 +81,7 @@ do
   u)      user=${OPTARG};;
   p)      pass=${OPTARG};;
   d)      debug=1;;
+  k)      verify="-k";;
   h)      help;;
   *)      help;;
   esac
@@ -90,7 +92,7 @@ if [[ -n $user ]] && [[ -n $pass ]]
   cdbcreds="-u ${user}:${pass}"
 fi
  
-curldbs=$(curl -q -s ${cdbproto}://${cdbhost}:${cdbport}/_all_dbs ${cdbcreds})
+curldbs=$(curl -q -s $verify ${cdbproto}://${cdbhost}:${cdbport}/_all_dbs ${cdbcreds})
 curldbsrc=$?
 
 if [[ $curldbsrc -eq 6 ]]; then 
