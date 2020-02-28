@@ -42,6 +42,7 @@ The script was tested with CouchDB 2.1. Newer versions _should_ work, too.
      -H Hostname or ip address of CouchDB Host (defaults to localhost)
      -P Port (defaults to 5984)
      -S Use https
+     -k Ignore certificate errors
      -u Username if authentication is required
      -p Password if authentication is required
      -d Debug (shows some additional information)
