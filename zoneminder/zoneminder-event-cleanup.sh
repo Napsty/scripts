@@ -4,15 +4,15 @@
 # Purpose:	Clean up old Zoneminder events but exclude archived events
 # Authors:	Claudio Kuenzler (2018)
 # Doc:		https://www.claudiokuenzler.com/blog/814/how-to-manually-clean-up-delete-zoneminder-events
-# History:	
+# History:
 # 2020-08-06 changed for zoneminder 1.24+ (@Brawn1)
 # 2020-07-24 added Docker Mysql (@Brawn1)
-# 2018-12-14 First version 
+# 2018-12-14 First version
 ###########################################################################
 # User variables
 olderthan=7 # Defines the minimum age in days of the events to be deleted
 zmcache=/var/lib/docker/volumes/zoneminder_zmcache/_data/events # Defines the path where zm stores events
-mysqlhost=localhost # Defines the MySQL host for the zm database, if using Docker, set localhost
+mysqlhost=localhost # Defines the MySQL host for the zm database
 mysqldb=zm # Defines the MySQL database name used by zm
 mysqluser=zoneminder # Defines a MySQL user to connect to the database
 mysqlpass=zm-mysql-password # Defines the password for the MySQL user
@@ -60,4 +60,5 @@ while read line; do
     mysql -h ${mysqlhost} -N -u ${mysqluser} --password=${mysqlpass} -e "DELETE FROM ${mysqldb}.Stats where EventId = $eventid"
   fi
 done < $tmpfile
+
 exit 0
