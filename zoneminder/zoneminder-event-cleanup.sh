@@ -7,6 +7,7 @@
 # History:
 # 2020-08-06 changed for zoneminder 1.24+ (@Brawn1)
 # 2020-07-24 added Docker Mysql (@Brawn1)
+# 2018-12-18 DB Name variable in first query
 # 2018-12-14 First version
 ###########################################################################
 # User variables
