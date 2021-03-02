@@ -113,8 +113,6 @@ for domainid in ${affecteddomains[*]}; do
   serial=$(mysql -u ${dbuser} -Bse "SELECT notified_serial FROM ${dbname}.domains WHERE id = ${domainid}")
   echo "Increasing serial (${serial}) for domain ${domain}"
   pdnsutil increase-serial ${domain}
-  serial=$(mysql -u ${dbuser} -Bse "SELECT notified_serial FROM ${dbname}.domains WHERE id = ${domainid}")
-  echo "New serial: ${serial}"
   echo "PowerDNS reloading zones"
   pdns_control reload
   echo "Sending notify to slave(s)"
