@@ -17,6 +17,7 @@ linux/mb2md.pl -> Converts Mbox mailboxes to Maildir format (note: package mb2md
 linux/swapusage.sh -> Collecting data for swap usage and prints which procs use most swap
 mongodb/logrotate-mongodb.sh -> Force MongoDB to rotate the MongoDB logfile (without downtime)
 pdns/infoblox2pdns.sh -> Infoblox to PowerDNS zone migration script
+pdns/pdns-search-replace.sh -> Search and replace DNS records in PowerDNS with MySQL backend
 pgsql/walarchivecleanup.sh -> Cleanup old PostgreSQL WAL logs according to age
 security/check_filesystem.sh -> Scan the filesystem for the CryptoPHP backdoor
 security/findbot.pl -> Trying to identify suspicious (php) files
