@@ -73,6 +73,15 @@ do
        esac
 done
 ###############################################################
+# Check for required parameters
+if [[ -z ${search} ]]; then
+  echo "Missing search string (-s)"; exit 2
+fi
+
+if [[ -z ${dbuser} ]]; then
+  echo "Missing database user (-u)"; exit 2
+fi
+###############################################################
 # Ask for backup when launching interactive
 if [[ ${batchmode} == false ]]; then 
   read -p "Manipulating DNS records can cause severe damage in your zone. Would you like to create a backup first? Y/N ? " reply
@@ -85,7 +94,6 @@ if [[ ${batchmode} == false ]]; then
     [Nn]* ) echo "You like to live dangerously, eh?" ;;
   esac 
 fi
-
 ###############################################################
 # Do da magic
 declare -a affecteddomains=($(mysql -u ${dbuser} -Bse "SELECT domain_id FROM ${dbname}.records WHERE content LIKE '%${search}%'" | uniq | tr '\n' ' '))
