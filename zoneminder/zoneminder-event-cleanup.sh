@@ -2,8 +2,8 @@
 ###########################################################################
 # Script:	zoneminder-event-cleanup.sh
 # Purpose:	Clean up old Zoneminder events but exclude archived events
-# Authors:	Claudio Kuenzler (2018)
-#           Guenter Bailey (2020)
+# Authors:	Claudio Kuenzler (2018,2021)
+#               Guenter Bailey (2020)
 # Doc:		https://www.claudiokuenzler.com/blog/814/how-to-manually-clean-up-delete-zoneminder-events
 # History:
 # 2018-12-14 First version
@@ -11,6 +11,7 @@
 # 2020-07-24 added Docker Mysql (@Brawn1)
 # 2020-08-06 changed for zoneminder 1.24+ (@Brawn1)
 # 2020-08-07 remove complexity and docker parts (@Brawn1)
+# 2021-03-08 Export MYSQL_PWD (fix issue #6)
 ###########################################################################
 # User variables
 olderthan=2 # Defines the minimum age in days of the events to be deleted
@@ -19,13 +20,14 @@ mysqlhost=localhost # Defines the MySQL host for the zm database
 mysqldb=zm # Defines the MySQL database name used by zm
 mysqluser=zoneminder # Defines a MySQL user to connect to the database
 mysqlpass=zm-mysql-password # Defines the password for the MySQL user
+export MYSQL_PWD=${mysqlpass}
 zm_linked_version="" # set "true" if using zoneminder pre 1.24 (old version with symlinks instead directories by events)
 
 # Fixed variables
 tmpfile=/tmp/$RANDOM
 
 # Get archived events from database
-declare -a archived=( $(mysql -N -h ${mysqlhost} -u ${mysqluser} --password=${mysqlpass} -e "select Id from ${mysqldb}.Events where Archived = 1;") )
+declare -a archived=( $(mysql -N -h ${mysqlhost} -u ${mysqluser} -e "select Id from ${mysqldb}.Events where Archived = 1;") )
 
 # Define find exceptions based on archived events
 i=0
@@ -59,9 +61,9 @@ while read line; do
   fi
   
   # delete eventid from database
-  mysql -h ${mysqlhost} -N -u ${mysqluser} --password=${mysqlpass} -e "DELETE FROM ${mysqldb}.Events where Id = $eventid"
-  mysql -h ${mysqlhost} -N -u ${mysqluser} --password=${mysqlpass} -e "DELETE FROM ${mysqldb}.Frames where EventId = $eventid"
-  mysql -h ${mysqlhost} -N -u ${mysqluser} --password=${mysqlpass} -e "DELETE FROM ${mysqldb}.Stats where EventId = $eventid"
+  mysql -h ${mysqlhost} -N -u ${mysqluser} -e "DELETE FROM ${mysqldb}.Events where Id = $eventid"
+  mysql -h ${mysqlhost} -N -u ${mysqluser} -e "DELETE FROM ${mysqldb}.Frames where EventId = $eventid"
+  mysql -h ${mysqlhost} -N -u ${mysqluser} -e "DELETE FROM ${mysqldb}.Stats where EventId = $eventid"
 done < $tmpfile
 
 exit 0
