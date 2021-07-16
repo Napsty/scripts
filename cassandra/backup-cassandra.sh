@@ -3,6 +3,7 @@
 # Cassandra Backup Script
 # Infiniroot www.infiniroot.com
 # 20210715 ck	First version
+# 20210716 ck	Minor fix
 #####################################################
 # Variables
 nodetool=/usr/bin/nodetool
@@ -31,8 +32,11 @@ for snapshot in ${snapshots[*]}; do
 	fi
 	echo "Starting rsync from $snapshot to ${backuppath}/${dbname}/${tablename}"
 	/usr/bin/rsync -ao --delete --numeric-ids ${snapshot}/ ${backuppath}/${dbname}/${tablename}/
-	if [[ $? -gt 0 ]]; then echo "ERROR during rsync on ${dbname}.${tablename}"; fi
-	if [[ $? -eq 0 ]]; then echo "OK rsync ${dbname}.${tablename}"; fi
+	if [[ $? -gt 0 ]]; then 
+		echo "ERROR during rsync on ${dbname}.${tablename}"
+	elif [[ $? -eq 0 ]]; then 
+		echo "OK rsync ${dbname}.${tablename}"
+	fi
 	echo "---------------------------------"
 
 done
