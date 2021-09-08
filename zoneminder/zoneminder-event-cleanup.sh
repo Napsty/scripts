@@ -4,6 +4,7 @@
 # Purpose:	Clean up old Zoneminder events but exclude archived events
 # Authors:	Claudio Kuenzler (2018,2021)
 #               Guenter Bailey (2020)
+#               Carlos Milan Figueredo (2021)
 # Doc:		https://www.claudiokuenzler.com/blog/814/how-to-manually-clean-up-delete-zoneminder-events
 # History:
 # 2018-12-14 First version
@@ -13,6 +14,7 @@
 # 2020-08-07 remove complexity and docker parts (@Brawn1)
 # 2021-03-08 Export MYSQL_PWD (fix issue #6)
 # 2021-08-28 Added transactional processing, progress indicator and truncate log option (@cmilanf)
+# 2021-09-08 Catch MySQL Error
 ###########################################################################
 # User variables
 olderthan=60 # Defines the minimum age in days of the events to be deleted
@@ -33,6 +35,12 @@ tmpfile=/tmp/$RANDOM
 
 # Get archived events from database
 declare -a archived=( $(mysql -N -h ${mysqlhost} -u ${mysqluser} -e "select Id from ${mysqldb}.Events where Archived = 1;") )
+
+# Catch MySQL errors
+if [[ -n $(echo ${archived[*]} | grep "ERROR") ]]; then
+  echo "Error while connecting to database. Error was: ${archived[*]}"
+  exit 1
+fi
 
 # Define find exceptions based on archived events
 i=0
