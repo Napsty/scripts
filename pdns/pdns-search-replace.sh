@@ -10,14 +10,19 @@
 # It will then increase the serial of the affected zone and 
 # issue a notify command (for the slaves to update the zone).
 ###############################################################
-# Changelog:    
+# Changelog:
 # 2021-03-02 ALPHA
+# 2022-06-09 Added several options (-H, -t, -n)
+#            Made 'replace' mandatory
+#            Changed invocation of mysql* commands
+#            Changed behaviour after update
+#            (author: Frank Maas)
 ###############################################################
 # License:      GNU General Public Licence (GPL) http://www.gnu.org/
-# This program is free software; you can redistribute it and/or 
-# modify it under the terms of the GNU General Public License 
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version. 
+# of the License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,14 +33,18 @@
 # along with this program; if not, see <https://www.gnu.org/licenses/>.
 ###############################################################
 # Version
-version="ALPHA"
+version="ALPHA 2.0"
 
 # Defaults and assumptions
 dbname="powerdns"
 dbport=3306
+dbhost="localhost"
 myts=$(date +%s)
+slaves=true
 batchmode=false
+dryrun=false
 ###############################################################
+
 # Help 
 help="$0 $version (c) 2021 Claudio Kuenzler\n
 Usage: $0 -s searchstring -r replacestring\n
@@ -45,10 +54,14 @@ Options:
 -d Database name (default: powerdns)
 -u Database user
 -p Database password
+-H Database host (default: localhost)
 -P Database port (default: 3306)
+-n Do not notify slaves/No slaves present
 -B Enable batch mode
+-t Testrun (only report number of domains that would be changed)
 -h Show help\n
 Requirements: mysql, pdns_util, pdns_control\n"
+
 
 # Check for people who need help - aren't we all nice ;-)
 if [ "${1}" = "--help" ] || [ "${#}" = "0" ];
@@ -58,7 +71,7 @@ if [ "${1}" = "--help" ] || [ "${#}" = "0" ];
 fi
 ###############################################################
 # Get user-given variables
-while getopts "s:r:d:u:p:P:B" Input;
+while getopts "s:r:d:u:p:P:H:Btn" Input;
 do
        case ${Input} in
        s)      search=${OPTARG};;
@@ -67,56 +80,86 @@ do
        u)      dbuser=${OPTARG};;
        p)      dbpass=${OPTARG}; export MYSQL_PWD="${OPTARG}";;
        P)      dbport=${OPTARG};;
+       H)      dbhost=${OPTARG};;
        B)      batchmode=true;;
+       t)      dryrun=true;;
+       n)      slaves=false;;
        h)      echo -e "${help}"; exit 1;;
        *)      echo -e "${help}"; exit 1;;
        esac
 done
+
 ###############################################################
 # Check for required parameters
 if [[ -z ${search} ]]; then
   echo "Missing search string (-s)"; exit 2
 fi
 
+if [[ -z ${replace} ]]; then
+  echo "Missing replace string (-r)"; exit 2
+fi
+
 if [[ -z ${dbuser} ]]; then
   echo "Missing database user (-u)"; exit 2
 fi
 ###############################################################
+# Set mysql parameters (all parameters default or mandatory)
+dbparam="-h ${dbhost} -P ${dbport} -u ${dbuser} ${dbname}"
+###############################################################
 # Ask for backup when launching interactive
-if [[ ${batchmode} == false ]]; then 
+if [[ ${batchmode} == false && ${dryrun} == false  ]]; then
   read -p "Manipulating DNS records can cause severe damage in your zone. Would you like to create a backup first? Y/N ? " reply
   case $reply in 
     [Yy]* ) echo "Saving MySQL dump of ${dbname} in /tmp/${dbname}.${myts}.sql"
-  	  mysqldump -u ${dbuser} ${dbname} > /tmp/${dbname}.${myts}.sql
-  	  if [[ $? -gt 0 ]]; then echo "There was a problem creating a backup. Exiting."; exit 2; fi
-   	  if ! [[ -s /tmp/${dbname}.${myts}.sql ]]; then echo "Dump is empty. Not good. Do a manual backup. Exiting."; exit 2; fi
-  	  ;;
+          mysqldump ${dbparam} > /tmp/${dbname}.${myts}.sql
+          if [[ $? -gt 0 ]]; then echo "There was a problem creating a backup. Exiting."; exit 2; fi
+          if ! [[ -s /tmp/${dbname}.${myts}.sql ]]; then echo "Dump is empty. Not good. Do a manual backup. Exiting."; exit 2; fi
+          ;;
     [Nn]* ) echo "You like to live dangerously, eh?" ;;
-  esac 
+  esac
 fi
 ###############################################################
 # Do da magic
-declare -a affecteddomains=($(mysql -u ${dbuser} -Bse "SELECT domain_id FROM ${dbname}.records WHERE content LIKE '%${search}%'" | uniq | tr '\n' ' '))
+declare -a affecteddomains=($(mysql ${dbparam} -Bse "SELECT domain_id FROM ${dbname}.records WHERE content LIKE '%${search}%'" | uniq | tr '\n' ' '))
 
-if [[ $? -gt 0 ]]; then 
+if [[ $? -gt 0 ]]; then
   echo "Unable to connect to database"; exit 2
 fi
 
-echo "Found ${#affecteddomains[*]} domains that will be affected of '${search}' being replaced by '${replace}'"
+if [[ ${#affecteddomains[*]} -eq 0 ]]; then
+  echo "Found no domains containing '${search}': nothing to do"
+  exit 0
+else
+  echo "Found ${#affecteddomains[*]} domains that will be affected of '${search}' being replaced by '${replace}'"
+fi
 
-# Replace 
-mysql -u ${dbuser} -Bse "UPDATE ${dbname}.records SET content = replace(content, '${search}', '${replace}')"
+# Check for dryrun
+if [[ ${dryrun} == true ]]; then
+  echo "Dryrun requested, exiting script before applying changes!"
+  exit 0
+fi
 
-# Increase serial of zone, reload zone, notify slaves
+# Replace
+mysql ${dbparam} -Bse "UPDATE ${dbname}.records SET content = replace(content, '${search}', '${replace}')"
+
+# Increase serial of affected zones
 for domainid in ${affecteddomains[*]}; do
-  domain=$(mysql -u ${dbuser} -Bse "SELECT name FROM ${dbname}.domains WHERE id = ${domainid}")
-  serial=$(mysql -u ${dbuser} -Bse "SELECT notified_serial FROM ${dbname}.domains WHERE id = ${domainid}")
-  echo "Increasing serial (${serial}) for domain ${domain}"
+  domain=$(mysql ${dbparam} -Bse "SELECT name FROM ${dbname}.domains WHERE id = ${domainid}")
   pdnsutil increase-serial ${domain}
-  echo "PowerDNS reloading zones"
-  pdns_control reload
-  echo "Sending notify to slave(s)"
-  pdns_control notify ${domain}
 done
+
+# Reload and rectify (all) zones
+echo "Rectifying and reloading (all) zones"
+pdnsutil rectify-all-zones
+pdns_control reload
+
+if [[ ${slaves} == true ]]; then
+  echo "Notifying slave(s) about changes in affected domains"
+  # Notify slaves
+  for domainid in ${affecteddomains[*]}; do
+    domain=$(mysql ${dbparam} -Bse "SELECT name FROM ${dbname}.domains WHERE id = ${domainid}")
+    pdns_control notify ${domain}
+  done
+fi
 
 exit
