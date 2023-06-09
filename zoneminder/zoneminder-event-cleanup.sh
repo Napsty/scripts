@@ -2,7 +2,7 @@
 ###########################################################################
 # Script:	zoneminder-event-cleanup.sh
 # Purpose:	Clean up old Zoneminder events but exclude archived events
-# Authors:	Claudio Kuenzler (2018,2021)
+# Authors:	Claudio Kuenzler (2018,2021,2023)
 #               Guenter Bailey (2020)
 #               Carlos Milan Figueredo (2021)
 # Doc:		https://www.claudiokuenzler.com/blog/814/how-to-manually-clean-up-delete-zoneminder-events
@@ -15,6 +15,7 @@
 # 2021-03-08 Export MYSQL_PWD (fix issue #6)
 # 2021-08-28 Added transactional processing, progress indicator and truncate log option (@cmilanf)
 # 2021-09-08 Catch MySQL Error
+# 2023-06-09 Delete empty cache directories
 ###########################################################################
 # User variables
 olderthan=60 # Defines the minimum age in days of the events to be deleted
@@ -88,6 +89,10 @@ while read line; do
   mysql -h ${mysqlhost} -N -u ${mysqluser} -e "${mysql_query}"
 done < $tmpfile
 echo "Event clean-up finished!"
+
+# Delete empty directories inside zmcache
+find ${zmcache}/ -empty -type d -delete
+
 # truncate log table
 if [[ ! -z ${truncate_logs} ]]; then
 	echo "Truncating Logs table..."
