@@ -17,6 +17,7 @@
 #            Changed invocation of mysql* commands
 #            Changed behaviour after update
 #            (author: Frank Maas)
+# 2023-10-05 Bugfix when using dash in database name
 ###############################################################
 # License:      GNU General Public Licence (GPL) http://www.gnu.org/
 # This program is free software; you can redistribute it and/or
@@ -33,7 +34,7 @@
 # along with this program; if not, see <https://www.gnu.org/licenses/>.
 ###############################################################
 # Version
-version="ALPHA 2.0"
+version="ALPHA 2.1"
 
 # Defaults and assumptions
 dbname="powerdns"
@@ -46,7 +47,7 @@ dryrun=false
 ###############################################################
 
 # Help 
-help="$0 $version (c) 2021 Claudio Kuenzler\n
+help="$0 $version (c) 2021-2023 Claudio Kuenzler\n
 Usage: $0 -s searchstring -r replacestring\n
 Options:
 -s Search for this particular string
@@ -120,7 +121,7 @@ if [[ ${batchmode} == false && ${dryrun} == false  ]]; then
 fi
 ###############################################################
 # Do da magic
-declare -a affecteddomains=($(mysql ${dbparam} -Bse "SELECT domain_id FROM ${dbname}.records WHERE content LIKE '%${search}%'" | uniq | tr '\n' ' '))
+declare -a affecteddomains=($(mysql ${dbparam} -Bse "SELECT domain_id FROM \`${dbname}\`.records WHERE content LIKE '%${search}%'" | uniq | tr '\n' ' '))
 
 if [[ $? -gt 0 ]]; then
   echo "Unable to connect to database"; exit 2
@@ -140,11 +141,11 @@ if [[ ${dryrun} == true ]]; then
 fi
 
 # Replace
-mysql ${dbparam} -Bse "UPDATE ${dbname}.records SET content = replace(content, '${search}', '${replace}')"
+mysql ${dbparam} -Bse "UPDATE \`${dbname}\`.records SET content = replace(content, '${search}', '${replace}')"
 
 # Increase serial of affected zones
 for domainid in ${affecteddomains[*]}; do
-  domain=$(mysql ${dbparam} -Bse "SELECT name FROM ${dbname}.domains WHERE id = ${domainid}")
+  domain=$(mysql ${dbparam} -Bse "SELECT name FROM \`${dbname}\`.domains WHERE id = ${domainid}")
   pdnsutil increase-serial ${domain}
 done
 
@@ -157,7 +158,7 @@ if [[ ${slaves} == true ]]; then
   echo "Notifying slave(s) about changes in affected domains"
   # Notify slaves
   for domainid in ${affecteddomains[*]}; do
-    domain=$(mysql ${dbparam} -Bse "SELECT name FROM ${dbname}.domains WHERE id = ${domainid}")
+    domain=$(mysql ${dbparam} -Bse "SELECT name FROM \`${dbname}\`.domains WHERE id = ${domainid}")
     pdns_control notify ${domain}
   done
 fi
